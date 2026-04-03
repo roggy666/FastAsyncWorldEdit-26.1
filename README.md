@@ -1,95 +1,76 @@
-# FastAsyncWorldEdit
-[![Join us on Discord](https://img.shields.io/discord/268444645527126017.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/intellectualsites)
-[![bStats Servers](https://img.shields.io/bstats/servers/1403)](https://bstats.org/plugin/bukkit/FastAsyncWorldEdit/1403)
-[![Crowdin](https://badges.crowdin.net/e/4a5819fae3fd88234a8ea13bfbb072bb/localized.svg)](https://intellectualsites.crowdin.com/fastasyncworldedit)
+# FastAsyncWorldEdit (Fork with Minecraft 26.1 Support)
 
-## What is FAWE and why should I use it?
+This is an unofficial fork of [FastAsyncWorldEdit](https://github.com/IntellectualSites/FastAsyncWorldEdit) that adds support for **Minecraft 26.1** (new versioning scheme).
 
-FAWE is designed for efficient world editing.
-* Simple to set up and use
-* Extremely configurable
-* Uses minimal CPU/Memory
-* Safe for many players to use
-* Insanely fast, when using the slowest mode
+## What changed in this fork
 
-FastAsyncWorldEdit is a fork of WorldEdit that has huge speed and memory improvements and considerably more features.  
-If you use other plugins which depend on WorldEdit, simply having FAWE installed will boost their performance.
+### New adapter for MC 26.1
+- Created `adapter-26_1` with full NMS support for Minecraft 26.1
+- Ported all 26+ API changes: `ChunkPos` records, non-generic `TicketType`, removed moonrise/starlight APIs, new `ServerLevel` constructors, etc.
+- Disabled `reobfJar` for 26.1 (Mojang no longer obfuscates server jars)
 
-## Downloads
+### Patched paperweight-userdev
+- Upstream paperweight `2.0.0-SNAPSHOT` (commit `7d74656`) added dev-bundle v8 support but dropped v7 backward compatibility
+- Our [paperweight fork](https://github.com/roggy666/paperweight-26.1) re-adds `DevBundleV7` dispatch so both old (1.21.x) and new (26.1+) adapters work
 
-Releases are available either on Modrinth or on CurseForge.
-- [Modrinth](https://modrinth.com/plugin/fastasyncworldedit/)
-- [CurseForge](https://dev.bukkit.org/projects/fawe)
+### Build system adjustments
+- Added `mavenLocal()` to `pluginManagement` and adapter repositories for local artifact resolution
+- Updated `worldedit-libs/build.gradle.kts` for Gradle 9.4 compatibility with new paperweight
+- Temporarily disabled adapters `1_21_4`, `1_21_5`, `1_21_6`, `1_21_9`, `1_21_11` (codebook/ASM incompatibility with JDK 25 or dev-bundle v7 issues)
 
-### Experimental Builds
-- [Jenkins](https://ci.athion.net/job/FastAsyncWorldEdit/)
+## Prerequisites
 
-## Features
+- **JDK 25** (Oracle or Temurin)
+- **Git**
 
-* Over 200 Commands
-* Style and translate messages and commands
-* (No setup required) Clipboard web integration (Clipboard)
-* Unlimited //undo, per world history, instant lookups/rollback and cross server clipboards
-* Advanced per player limits (entity, tiles, memory, changes, iterations, regions, inventory)
-* Visualization, targeting modes/masks and scroll actions
-* Adds lots of powerful new //brushes and //tools.
-* Adds a lot more mask functionality. (new mask syntax, patterns, expressions, source masks)
-* Adds a lot more pattern functionality. (a lot of new pattern syntax and patterns)
-* Adds edit transforms (apply transforms to a source, e.g. on //paste)
-* Adds support for new formats (e.g. Structure Blocks)
-* Instant copying of arbitrary size with `//lazycopy`
-* Auto repair partially corrupt schematic files
-* Biome mixing, in-game world painting, dynamic view distance, vanilla cui, off axis rotation, image importing, cave generation,
-  multi-clipboards, interactive messages, schematic visualization, lag prevention, persistent brushes + A LOT MORE
+## Building
 
-### Performance
+### 1. Build Paper 26.1
 
-There are several placement modes, each supporting higher throughput than the previous. All editing is processed
-asynchronously, with
-certain tasks being broken up on the main thread. The default mode is chunk placement.
-* Blocks (Bukkit-API) - Only used if chunk placement isn't supported. Still faster than any other plugin on spigot.
-* Chunks (NMS) - Places entire chunk sections
-* World (CFI) - Used to generate new worlds / regions
+Your local Paper fork must be built first to publish the dev-bundle:
 
-### Protection Plugins
+```bash
+cd Paper
+./gradlew publishToMavenLocal
+```
 
-The following plugins are supported with Bukkit:
-* [WorldGuard](https://dev.bukkit.org/projects/worldguard)
-* [PlotSquared](https://www.spigotmc.org/resources/77506/)
+This publishes `io.papermc.paper:dev-bundle:26.1-R0.1-SNAPSHOT` to `~/.m2/repository/`.
 
-### Logging and Rollback
+### 2. Build paperweight from source
 
-By default you can use `//inspect` and `//history rollback` to search and restore changes. To reduce disk usage, increase the
-compression level and buffer size. To bypass logging use `//fast`.
+Clone and build the [patched paperweight](https://github.com/roggy666/paperweight-26.1) (with DevBundleV7 backward compatibility):
 
-### Developer API
+```bash
+git clone https://github.com/roggy666/paperweight-26.1.git paperweight
+cd paperweight
+./gradlew publishToMavenLocal
+```
 
-FAWE maintains API compatibility with WorldEdit, so you can use the normal WorldEdit API asynchronously.
-FAWE also has some asynchronously wrappers for the Bukkit API.
-The wiki has examples for various things like reading NBT, modifying world files, pasting schematics, splitting up tasks, lighting etc.
-If you need help with anything, hop on discord (link on the left bar).
+This publishes `io.papermc.paperweight:paperweight-userdev:2.0.0-SNAPSHOT` to `~/.m2/repository/`.
 
-## Documentation
+### 3. Build FAWE
 
-* [Wiki](https://intellectualsites.github.io/fastasyncworldedit-documentation/)
-* [Javadocs](https://intellectualsites.github.io/fastasyncworldedit-javadocs/)
+```bash
+cd FastAsyncWorldEdit
+./gradlew build
+```
 
-## Contributing
+Output jar:
+```
+worldedit-bukkit/build/libs/FastAsyncWorldEdit-Bukkit-2.15.1-SNAPSHOT.jar
+```
 
-Want to add new features to FastAsyncWorldEdit or fix bugs yourself? You can get the game running, with FastAsyncWorldEdit, from the code here:
+## Supported Minecraft versions
 
-For additional information about compiling FastAsyncWorldEdit, read the [compiling documentation](https://github.com/IntellectualSites/FastAsyncWorldEdit/blob/main/COMPILING.adoc).
+| Version | Adapter | Status |
+|---------|---------|--------|
+| 1.20.2 | adapter-1_20_2 | Upstream |
+| 1.20.4 - 1.20.6 | adapter-1_20_4, adapter-1_20_5 | Upstream |
+| 1.21 - 1.21.1 | adapter-1_21 | Upstream |
+| **26.1** | **adapter-26_1** | **This fork** |
 
-## Special thanks
+Adapters for 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11 are temporarily disabled (codebook/ASM or dev-bundle v7 incompatibility with JDK 25).
 
+## Upstream
 
-[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSource)
-<br>
-The creators of IntelliJ IDEA, supports us with their Open Source Licenses.
-
-<a href="https://yourkit.com/"><img src="https://www.yourkit.com/images/yklogo.png" width="200">
-</a>
-
-Thank you to YourKit for supporting our product by providing us with their innovative and intelligent tools
-for monitoring and profiling Java and .NET applications.
-YourKit is the creator of [YourKit Java Profiler](https://www.yourkit.com/java/profiler/), [YourKit .NET Profiler](https://www.yourkit.com/.net/profiler/), and [YourKit YouMonitor](https://www.yourkit.com/youmonitor/).
+Based on [IntellectualSites/FastAsyncWorldEdit](https://github.com/IntellectualSites/FastAsyncWorldEdit) (`main` branch, commit `526d114`).

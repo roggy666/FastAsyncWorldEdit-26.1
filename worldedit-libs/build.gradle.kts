@@ -1,3 +1,8 @@
-tasks.register("build") {
-    dependsOn(subprojects.map { it.tasks.named("build") })
+plugins {
+    base
+}
+tasks.named("build") {
+    subprojects.forEach {
+        dependsOn("${it.path}:build")
+    }
 }

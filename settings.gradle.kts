@@ -2,10 +2,15 @@ import kotlin.system.exitProcess
 
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         maven {
             name = "EngineHub Repository"
             url = uri("https://maven.enginehub.org/repo/")
+        }
+        maven {
+            name = "PaperMC"
+            url = uri("https://repo.papermc.io/repository/maven-public/")
         }
     }
 }
@@ -55,7 +60,7 @@ includeBuild("build-logic")
 
 include("worldedit-libs")
 
-listOf("1_20_2", "1_20_4", "1_20_5", "1_21", "1_21_4", "1_21_5", "1_21_6", "1_21_9", "1_21_11").forEach {
+listOf("1_20_2", "1_20_4", "1_20_5", "1_21", "26_1").forEach {
     include("worldedit-bukkit:adapters:adapter-$it")
 }
 
